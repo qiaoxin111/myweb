@@ -1,24 +1,27 @@
 <template>
-  <div class="qx-button">
-    <el-button v-cloak>{{data.propValue}}</el-button>
-  </div>
+  <el-button class="qx-button">{{ data.propValue }}</el-button>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { IButton } from '@/store'
+import Vue, { PropType } from 'vue'
 
 export default Vue.extend({
-  name: "qx-button",
+  name: 'qx-button',
   props: {
     data: {
-      type: Object,
+      type: Object as PropType<IButton>,
       required: true,
-    }
+    },
   },
-  components: {
+
+  data: function () {
+    return {} as IButton
   },
-});
+})
 </script>
 <style scoped lang="less">
-
+/deep/ .el-button {
+  padding: 0px;
+}
 </style>
