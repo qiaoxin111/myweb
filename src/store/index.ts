@@ -39,7 +39,11 @@ export interface IState {
   canvasList: IComponents[]
   currentIndex?: number
 }
-
+// TODO: 这里应该怎么声明
+interface CompAndIndex {
+  component: IComponents
+  index: number
+}
 export default new Vuex.Store({
   state: {
     currentComponent: undefined,
@@ -55,6 +59,10 @@ export default new Vuex.Store({
     },
     addCanvasList(state, component: IComponents): void {
       state.canvasList.push(component)
+    },
+    changeComponent(state, data: CompAndIndex) {
+      state.canvasList[data.index].style.left = data.component.style.left
+      state.canvasList[data.index].style.top = data.component.style.top
     },
   },
   actions: {},

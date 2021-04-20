@@ -1,22 +1,20 @@
 <template>
-  <div class="qx-canvas" @click="blurPage">
-    <draggable v-model="dataList" group="people">
-      <div>
-        <component
-          v-for="(item, index) in dataList"
-          class="qx-component"
-          :class="{ active: currentIndex === index }"
-          :style="getShapeStyle(item.style, index)"
-          :is="item.name"
-          :key="index"
-          :data-index="index"
-          :data="item"
-          @click.native="changeCurComp(item, index, $event)"
-          @mousedown="startMove"
-        >
-        </component>
-      </div>
-    </draggable>
+  <div id="qx-canvas" @click="blurPage">
+    <div>
+      <component
+        v-for="(item, index) in dataList"
+        class="qx-component"
+        :class="{ active: currentIndex === index }"
+        :style="getShapeStyle(item.style, index)"
+        :is="item.name"
+        :key="index"
+        :data-index="index"
+        :data="item"
+        @click.native="changeCurComp(item, index, $event)"
+        @mousedown.native="handleMousedown(item, index, $event)"
+      >
+      </component>
+    </div>
   </div>
 </template>
 
@@ -33,6 +31,9 @@ export default Vue.extend({
     qxButton,
     draggable,
   },
+  data() {
+    return {}
+  },
   computed: mapState(['currentIndex']),
   updated() {
     // console.log(this.dataList)
@@ -47,6 +48,7 @@ export default Vue.extend({
       console.log(evt)
     },
     changeCurComp(curComp: IComponents, index: number, evt: Event) {
+      evt.preventDefault()
       evt.stopPropagation()
       this.$store.commit('setCurrent', curComp)
       this.$store.commit('setCurrentIndex', index)
@@ -84,14 +86,51 @@ export default Vue.extend({
       curStyle.zIndex = index
       return curStyle
     },
-    startMove(evt: Event) {
-      console.log('鼠标', evt)
+    handleMousedown(component: IComponents, index: number, evt: Event) {
+      // evt.preventDefault()
+      evt.stopPropagation()
+      const context = this
+      const mouseStartX = evt.offsetX
+      const mouseStartY = evt.offsetY
+      const canvasbox = document.getElementById('qx-canvas')
+      const boxRect = canvasbox.getBoundingClientRect()
+      const move = function (evt: Event) {
+        const offsetX = evt.clientX - boxRect.left - mouseStartX
+        const offsetY = evt.clientY - boxRect.top - mouseStartY
+        context.getShapeStyle(
+          {
+            ...component.style,
+            left: offsetX,
+            top: offsetY,
+          },
+          index,
+        )
+        context.$store.commit('changeComponent', {
+          index,
+          component: {
+            ...component,
+            style: {
+              ...component.style,
+              left: offsetX,
+              top: offsetY,
+            },
+          },
+        })
+      }
+      const up = function () {
+        console.log('鼠标抬起')
+
+        document.removeEventListener('mousemove', move)
+        document.removeEventListener('mouseup', up)
+      }
+      document.addEventListener('mousemove', move)
+      document.addEventListener('mouseup', up)
     },
   },
 })
 </script>
 <style scoped lang="less">
-.qx-canvas {
+#qx-canvas {
   position: relative;
   width: 375px;
   height: 700px;
