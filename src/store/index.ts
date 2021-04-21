@@ -11,10 +11,10 @@ export interface IComponentsBasic {
   name: ComponentsTypes
   selected?: boolean
   style: {
-    width: string
-    height: string
-    left: string
-    top: string
+    width: number
+    height: number
+    left: number
+    top: number
     zIndex: number
   }
 }
@@ -23,9 +23,9 @@ export interface IButton extends IComponentsBasic {
   propValue: string
   style: {
     color: string
-    fontSize: string
-    borderWidth: string
-    borderRadius: string
+    fontSize: number
+    borderWidth: number
+    borderRadius: number
     borderStyle: string
     // textAlign: 'center',
     backgroundColor: string
@@ -61,8 +61,10 @@ export default new Vuex.Store({
       state.canvasList.push(component)
     },
     changeComponent(state, data: CompAndIndex) {
-      state.canvasList[data.index].style.left = data.component.style.left
-      state.canvasList[data.index].style.top = data.component.style.top
+      state.canvasList.splice(data.index, 1, data.component)
+      // state.canvasList[data.index] = data.component
+      // state.canvasList[data.index].style.left = data.component.style.left
+      // state.canvasList[data.index].style.top = data.component.style.top
     },
   },
   actions: {},

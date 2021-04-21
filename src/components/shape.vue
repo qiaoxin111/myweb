@@ -1,27 +1,9 @@
 <template>
-  <el-button class="qx-button">{{ data.propValue }}</el-button>
+  <div class="qx-shape"></div>
 </template>
 
-<script lang="ts">
-import { IButton } from '@/store'
-import Vue, { PropType } from 'vue'
-
-export default Vue.extend({
-  name: 'qx-button',
-  props: {
-    data: {
-      type: Object as PropType<IButton>,
-      required: true,
-    },
-  },
-
-  data: function () {
-    return {} as IButton
-  },
-})
+<script>
+export default {}
 </script>
-<style scoped lang="less">
-/deep/ .el-button {
-  padding: 0px;
-}
-</style>
+
+<style></style>
