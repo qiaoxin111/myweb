@@ -16,6 +16,7 @@ export interface IComponentsBasic {
     left: number
     top: number
     zIndex: number
+    rotate: number
   }
 }
 

@@ -26,7 +26,8 @@
           <el-tab-pane label="属性" name="attr">
             <qxAttrList
               v-if="currentIndex !== undefined"
-              :attrCur="currentComponent"
+              :dataList="canvasList"
+              :currentIndex="currentIndex"
             ></qxAttrList>
             <div v-else>请选择组件</div>
           </el-tab-pane>
@@ -71,6 +72,7 @@ export default Vue.extend({
   },
   created() {
     this.list = List
+    // this.componentList = this.$store.state.
   },
   updated() {
     // console.log(this.currentIndex)

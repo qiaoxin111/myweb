@@ -55,21 +55,7 @@ import { IComponents } from '@/store'
 
 export default Vue.extend({
   name: 'qx-attrList',
-  props: ['attrCur'],
-  computed: {
-    styles() {
-      return Object.keys(this.attrCur.style).map(item => item)
-    },
-  },
-  components: {},
-  watch: {
-    attrCur(newAttrCur: IComponents): void {
-      this.$store.commit('setCurrent', newAttrCur)
-    },
-  },
-  updated() {
-    // console.log('attr', this.attrCur)
-  },
+  props: ['dataList', 'currentIndex'],
   data() {
     return {
       textAlignOptions: [
@@ -113,8 +99,26 @@ export default Vue.extend({
         backgroundColor: '背景颜色',
         left: 'x坐标',
         top: 'y坐标',
+        rotate: '旋转角度',
       },
     }
+  },
+  computed: {
+    attrCur() {
+      return this.dataList[this.currentIndex]
+    },
+    styles() {
+      return Object.keys(this.attrCur.style).map(item => item)
+    },
+  },
+  components: {},
+  watch: {
+    attrCur(newAttrCur: IComponents): void {
+      this.$store.commit('setCurrent', newAttrCur)
+    },
+  },
+  updated() {
+    // console.log('attr', this.attrCur)
   },
 })
 </script>

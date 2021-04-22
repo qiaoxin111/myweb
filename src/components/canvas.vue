@@ -1,32 +1,40 @@
 <template>
-  <div id="qx-canvas" @click="blurPage">
-    <div>
-      <div v-for="(item, index) in dataList" :key="index">
-        <div
-          class="qx-component"
-          :class="{ active: currentIndex === index }"
-          :data-index="index"
-          :style="getBoxShapeStyle(item.style, index)"
-        >
-          <div class="pointList" v-show="currentIndex === index">
-            <span
-              class="point"
-              v-for="(point, i) in pointList"
-              :key="i"
-              :style="getPointStyle(point)"
-              @mousedown="pointHandleMousedown(item, point, index, $event)"
-            ></span>
-          </div>
-          <component
-            :is="item.name"
-            :data="item"
-            :style="getShapeStyle(item.style, index)"
-            @click.native="changeCurComp(item, index, $event)"
-            @mousedown.native="handleMousedown(item, index, $event)"
-          ></component>
+  <div id="qx-canvas" @mousedown="blurPage">
+    <div v-for="(item, index) in dataList" :key="index">
+      <div
+        class="qx-component"
+        :class="{ activeEle: currentIndex === index }"
+        :data-index="index"
+        style=""
+        :style="[
+          getBoxShapeStyle(item.style, index),
+          { transform: `rotate(${item.style.rotate}deg)` },
+        ]"
+      >
+        <span
+          class="icon"
+          v-show="currentIndex === index"
+          @mousedown="turnHandleMousedown(item, index, $event)"
+        ></span>
+        <div class="pointList" v-show="currentIndex === index">
+          <span
+            class="point"
+            v-for="(point, i) in pointList"
+            :key="i"
+            :style="getPointStyle(point)"
+            @mousedown="pointHandleMousedown(item, point, index, $event)"
+          ></span>
         </div>
+        <component
+          :is="item.name"
+          :data="item"
+          :style="getShapeStyle(item.style, index)"
+          @click.native="changeCurComp(item, index, $event)"
+          @mousedown.native="handleMousedown(item, index, $event)"
+        ></component>
       </div>
     </div>
+    <qxMarkLine />
   </div>
 </template>
 
@@ -34,6 +42,7 @@
 import Vue from 'vue'
 import draggable from 'vuedraggable'
 import qxButton from '../components/basic-components/qxButton.vue'
+import qxMarkLine from '../components/markLine.vue'
 import { mapState } from 'vuex'
 import { IComponents } from '@/store'
 export default Vue.extend({
@@ -42,6 +51,7 @@ export default Vue.extend({
   components: {
     qxButton,
     draggable,
+    qxMarkLine,
   },
   data() {
     return {
@@ -49,18 +59,7 @@ export default Vue.extend({
     }
   },
   computed: mapState(['currentIndex']),
-  updated() {
-    // console.log(this.dataList)
-  },
   methods: {
-    dragstart(evt: Event) {
-      console.log('开始')
-      console.log(evt)
-    },
-    dragend(evt: Event) {
-      console.log('结束')
-      console.log(evt)
-    },
     changeCurComp(curComp: IComponents, index: number, evt: Event) {
       evt.preventDefault()
       evt.stopPropagation()
@@ -68,6 +67,7 @@ export default Vue.extend({
       this.$store.commit('setCurrentIndex', index)
     },
     blurPage() {
+      console.log('blurPage')
       this.$store.commit('setCurrentIndex', undefined)
     },
     getBoxShapeStyle(
@@ -93,7 +93,6 @@ export default Vue.extend({
       return curStyle
     },
     handleMousedown(component: IComponents, index: number, evt: Event) {
-      console.log('鼠标按下事件')
       // evt.preventDefault()
       evt.stopPropagation()
       const context = this
@@ -102,6 +101,7 @@ export default Vue.extend({
       const canvasbox = document.getElementById('qx-canvas')
       const boxRect = canvasbox.getBoundingClientRect()
       const move = function (evt: Event) {
+        evt.preventDefault()
         const offsetX = evt.clientX - boxRect.left - mouseStartX
         const offsetY = evt.clientY - boxRect.top - mouseStartY
         context.$store.commit('changeComponent', {
@@ -117,7 +117,6 @@ export default Vue.extend({
         })
       }
       const up = function () {
-        console.log('鼠标抬起')
         document.removeEventListener('mousemove', move)
         document.removeEventListener('mouseup', up)
       }
@@ -125,7 +124,6 @@ export default Vue.extend({
       document.addEventListener('mouseup', up)
     },
     getPointStyle(item: string) {
-      // console.log(item)
       let left, top, right, bottom, marginLeft, marginTop, cursor
       switch (item) {
         case 'tl':
@@ -194,6 +192,7 @@ export default Vue.extend({
       const canvasbox = document.getElementById('qx-canvas')
       const boxRect = canvasbox.getBoundingClientRect()
       const move = function (evt: Event) {
+        evt.stopPropagation()
         let height = component.style.height
         let width = component.style.width
         let left = component.style.left
@@ -242,7 +241,53 @@ export default Vue.extend({
         })
       }
       const up = function () {
-        console.log('移动停止，鼠标松开')
+        document.removeEventListener('mousemove', move)
+        document.removeEventListener('mouseup', up)
+      }
+      document.addEventListener('mousemove', move)
+      document.addEventListener('mouseup', up)
+    },
+    // 获取旋转角度
+    getAngle(x1: number, y1: number, x2: number, y2: number) {
+      let rect = document
+        .getElementsByClassName('activeEle')[0]
+        .getBoundingClientRect()
+      let { x, y, width, height } = rect
+      // 当前选中元素中心点的位置
+      let cx = x + width / 2
+      let cy = y + height / 2
+      //2个点之间的角度获取
+      let c1 = (Math.atan2(y1 - cy, x1 - cx) * 180) / Math.PI
+      let c2 = (Math.atan2(y2 - cy, x2 - cx) * 180) / Math.PI
+      let angle
+      angle = Math.floor(c2 - c1)
+      return angle
+    },
+    turnHandleMousedown(component: IComponents, index: number, evt: Event) {
+      evt.stopPropagation()
+      const context = this
+      const startX = evt.clientX
+      const startY = evt.clientY
+      const move = function (evt: Event) {
+        const currentX = evt.clientX
+        const currentY = evt.clientY
+        evt.preventDefault()
+        const angle = context.getAngle(startX, startY, currentX, currentY)
+
+        const startAngle = component.style.rotate
+        const deg = startAngle + angle
+        context.$store.commit('changeComponent', {
+          index,
+          component: {
+            ...component,
+            style: {
+              ...component.style,
+              rotate: deg,
+            },
+          },
+        })
+      }
+      const up = function () {
         document.removeEventListener('mousemove', move)
         document.removeEventListener('mouseup', up)
       }
@@ -261,6 +306,18 @@ export default Vue.extend({
   border: 1px solid #888;
   .qx-component {
     position: absolute;
+    .icon {
+      position: absolute;
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      left: 50%;
+      transform: translate(-50%);
+      top: -30px;
+      background: url(../assets/images/turnRight.png) no-repeat;
+      background-size: contain;
+      cursor: pointer;
+    }
     .pointList {
       .point {
         display: inline-block;
@@ -272,7 +329,7 @@ export default Vue.extend({
         background: #fff;
       }
     }
-    &.active {
+    &.activeEle {
       outline: 1px solid red;
     }
   }

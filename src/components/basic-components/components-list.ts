@@ -18,6 +18,7 @@ const list = [
       backgroundColor: '#fff',
       left: 0,
       top: 0,
+      rotate: 0,
     },
   } as IButton,
 ]
